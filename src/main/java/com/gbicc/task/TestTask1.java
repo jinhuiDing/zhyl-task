@@ -7,17 +7,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Optional;
 
-/**
- * @Description
- * @Author sgl
- * @Date 2018-06-26 16:43
- */
+
+
 public class TestTask1 extends QuartzJobBean {
+
+    private static int i = 0;
 
     @Autowired
     TaskMapper taskMapper;
@@ -30,40 +30,49 @@ public class TestTask1 extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        Optional<User> one = taskMapper.findById(1L);
-        String query = one.get().getCode();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println("TestQuartz01----定时任务开始执行" + sdf.format(new Date()));
-        if (query.equals("0")) {
-
-            System.out.println(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~`开始执行脚本~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~` ");
-            try {
-                Runtime runtime = Runtime.getRuntime();
-//                String cmd = "cmd /c start D:\\develop\\apache-maven-3.5.2-bin\\cleanLastUpdated.bat";
-                String cmd = "/opt/zhyl-test/provider-8100/stop.sh";
-                Process exec = runtime.exec(cmd);
-                exec.waitFor();
-
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            //tomorrory("testTask1", null, "testTask1", null);
+        System.out.println("i = " + i);
+        if (i > 5) {
+            System.out.println("超出5次执行未能执行成功");
+            //0 0 12 * * ?  每天中午12点执行
             modifyJobTime("testTask1", "group", "trigger", "triggerGroup", "0 0/5 * * * ?");
-
-            System.out.println("~~~~~~~~~~~~~~~~~~~脚本执行完成.任务已经执行完成, 修改为5分钟后执行定时任务 ");
-
+            System.out.println("=============================今天暂停执行脚本, 修改为5分钟后执行定时任务==========================");
+            i=0;
         } else {
-            System.out.println("条件为满足,不执行,30秒钟后轮询查看条件是否满足");
+            Optional<User> one = taskMapper.findById(1L);
+            String query = one.get().getCode();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (query.equals("0")) {
 
-            modifyJobTime("testTask1", "group", "trigger", "triggerGroup", "*/30 * * * * ?");
+                System.out.println(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~`开始执行脚本~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~` ");
+                try {
+                    Runtime runtime = Runtime.getRuntime();
+                    String cmd = "cmd /c start D:\\develop\\apache-maven-3.5.2-bin\\cleanLastUpdated.bat";
+//                String cmd = "/opt/zhyl-test/provider-8100/stop.sh";
+                    Process exec = runtime.exec(cmd);
+                    exec.waitFor();
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                //0 0/2 * * * ?   每2分钟执行一次
+                modifyJobTime("testTask1", "group", "trigger", "triggerGroup", "*/30 * * * * ?");
+
+                i=0;
+                System.out.println("~~~~~~~~~~~~~~~~~~~脚本执行完成.任务已经执行完成, 修改为30执行定时任务 ");
+
+            } else {
+                i++;
+                System.out.println("·····························条件未满足,不执行,修改执行任务时间10秒钟执行一次················");
+                modifyJobTime("testTask1", "group", "trigger", "triggerGroup", "*/10 * * * * ?");
+            }
         }
-
     }
 
     /**

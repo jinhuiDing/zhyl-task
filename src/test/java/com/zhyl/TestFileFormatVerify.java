@@ -40,7 +40,7 @@ public class TestFileFormatVerify {
      @Test
     public void CheckFileByte8(){
         FileFormatVerify reg = new FileFormatVerify();
-        File file = new File("C:\\Users\\ding\\Desktop\\等保修改.xlsx");
+        File file = new File("C:\\Users\\ding\\Desktop\\ReportName_19_12_02_11_20_42.csv");
 
         byte[] bytes = reg.inputStream2ByteArray(file);
         String s = reg.bytesToHexString(bytes);

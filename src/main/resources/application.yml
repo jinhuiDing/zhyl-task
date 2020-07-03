@@ -11,5 +11,4 @@ spring:
       ddl-auto: none
 server:
   port:
-
     8200
